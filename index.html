@@ -99,6 +99,14 @@
   .op.mine{background:var(--ok-bg);border-color:#C9DCCB}
   .tg{font-style:normal;font-size:11px;background:#FBE3D3;color:var(--orange-deep);border-radius:8px;padding:1px 7px;font-weight:700;margin-inline-start:4px}
   select:disabled{opacity:.55}
+  .wel{text-align:center;font-family:'Amiri',serif;font-size:17px;line-height:1.8;color:var(--brown);margin:16px 6px 0}
+  .wel b{display:block;font-size:20px}
+  .subq{margin-top:18px;border:1px solid var(--line);border-radius:6px;padding:14px;background:var(--ivory)}
+  .subq .q{text-align:center;font-weight:700;font-size:16px}
+  .subq .yn{display:flex;gap:8px;margin-top:10px} .subq .yn .btn{margin:0;padding:12px;font-size:15px}
+  .btn.ghost{background:transparent;color:var(--brown);border:1px solid var(--line)}
+  .subq label{margin-top:12px}
+  .subq #sqSave{margin-top:14px;background:var(--orange)}
   .tip{font-size:12px;color:var(--brown-soft);text-align:center;margin-top:16px;line-height:1.8;background:var(--ivory);padding:10px;border-radius:6px}
   [hidden]{display:none!important}
 </style>
@@ -141,6 +149,19 @@
         <div><small id="rPerLbl">الحصة</small><b class="ar" id="rPer"></b></div>
       </div>
       <span class="chip" id="rChip"></span>
+      <p class="wel" id="rWel"></p>
+      <div class="subq" id="subQ" hidden>
+        <div class="q">هل هذه حصة احتياط؟</div>
+        <div class="yn"><button class="btn" id="sqYes">نعم، حصة احتياط</button><button class="btn ghost" id="sqNo">لا</button></div>
+        <div id="sqForm" hidden>
+          <label for="sqDept">قسم المعلمة الغائبة</label>
+          <select id="sqDept"><option value="">— اختاري القسم —</option></select>
+          <label for="sqT">المعلمة الغائبة (بديلة عنها)</label>
+          <select id="sqT" disabled><option value="">اختاري القسم أولاً</option></select>
+          <button class="btn" id="sqSave">تسجيل حصة الاحتياط</button>
+        </div>
+        <div class="err" id="sqErr"></div>
+      </div>
       <p class="note" id="rDate"></p>
       <button class="btn" id="backMe" hidden>رجوع لصفحتي</button>
     </section>
@@ -230,10 +251,35 @@
     out:'<svg viewBox="0 0 24 24" fill="none" stroke="#FBF6EE" stroke-width="1.6"><path d="M5 12.5l4.3 4.3L19 7"/></svg>'
   };
 
+  var PH_ON=['كتب الله أجركِ على ما تقدّمينه لبناتنا، حصة موفقة.','بارك الله في وقتكِ وجهدكِ، ونفع بعلمكِ.','جزاكِ الله خيراً على حرصكِ والتزامكِ، فأنتِ قدوة لطالباتكِ.','وفّقكِ الله وسدّد خطاكِ، والتزامكِ يصنع الفرق.','دخولكِ في الوقت رسالة احترام للعلم وطالباته، حصة مباركة.'];
+  var PH_LATE=['حصة موفقة بإذن الله، ونسعد دائماً بدخولكِ في الوقت.','بارك الله في جهدكِ، وكل دقيقة من الحصة كنزٌ لطالباتكِ.'];
+  var PH_SUB=['كتب الله أجركِ على تغطية حصة زميلتكِ، وجزاكِ عنّا وعن طالباتنا خيراً.','بارك الله في عطائكِ، فتعاونكِ مع زميلاتكِ من أجمل صور العمل بروح الفريق.'];
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function welcome(r){
+    var first=String(r.name||'').split(/\s+/)[0];
+    var ph= r.sub?pick(PH_SUB) : r.status==='متأخرة'?pick(PH_LATE) : r.status==='في الوقت'?pick(PH_ON) : 'تم تسجيل وقت دخولكِ، بارك الله في جهدكِ.';
+    $('rWel').innerHTML='<b>أهلاً بكِ أ. '+first+'</b>'+ph;
+  }
+  var TCH=null;
+  function setupSubQ(r){
+    var box=$('subQ'); box.hidden=!(r.status==='خارج الجدول'&&r.curP&&!r.duplicate);
+    $('sqForm').hidden=true; $('sqErr').style.display='none'; document.querySelector('#subQ .yn').hidden=false;
+    if(box.hidden) return;
+    box.dataset.cls=r.cls;
+    var fill=function(){
+      var groups={}; TCH.forEach(function(t){ (groups[t.dept]=groups[t.dept]||[]).push(t); });
+      var ds=$('sqDept'); ds.innerHTML='<option value="">— اختاري القسم —</option>'+Object.keys(groups).sort(function(a,b){return a.localeCompare(b,'ar');}).map(function(d){return '<option>'+d+'</option>';}).join('');
+      ds.onchange=function(){ var ts=$('sqT'), l=(groups[ds.value]||[]).slice().sort(function(a,b){return a.name.localeCompare(b.name,'ar');});
+        ts.innerHTML='<option value="">'+(ds.value?'— اختاري المعلمة —':'اختاري القسم أولاً')+'</option>'+l.map(function(t){return '<option value="'+t.id+'">'+t.name+'</option>';}).join(''); ts.disabled=!ds.value; };
+      if(r.suggest){ ds.value=r.suggest.dept; ds.onchange(); $('sqT').value=r.suggest.id; }
+    };
+    if(TCH) fill(); else call('teachers').then(function(x){ TCH=(x&&x.teachers)||[]; fill(); });
+  }
   function renderResult(r){
+    setTimeout(function(){ welcome(r); setupSubQ(r); },0);
     var kind = r.status==='متأخرة'?'late':(r.status==='في الوقت'?'ok':'out');
     $('seal').className='seal '+kind; $('seal').innerHTML=ICON[kind];
-    $('rTitle').textContent = r.duplicate?'سبق تسجيل دخولك':'تم تسجيل دخولك';
+    $('rTitle').textContent = r.duplicate?'سبق تسجيل دخولك':(r.sub?'تم تسجيل حصة الاحتياط':'تم تسجيل دخولك');
     $('rName').textContent = 'أ. '+r.name;
     $('rCls').textContent = r.cls; $('rClsAr').textContent = clsAr(r.cls);
     $('rTime').textContent = r.time12;
@@ -241,7 +287,7 @@
     else { $('rPerLbl').textContent='الحصة'; $('rPer').textContent='غير مجدولة الآن'; }
     var chip=$('rChip'); chip.className='chip '+kind;
     chip.textContent = kind==='late' ? ('متأخرة '+(r.late==2?'دقيقتين':r.late+' '+(r.late>=3&&r.late<=10?'دقائق':'دقيقة'))) :
-                       kind==='ok' ? 'في الوقت' : (r.status==='غير محتسب' ? 'تم التسجيل · يوم غير محتسب' : 'دخول خارج الجدول');
+                       kind==='ok' ? (r.sub?'احتياط · في الوقت':'في الوقت') : (r.status==='غير محتسب' ? 'تم التسجيل · يوم غير محتسب' : 'دخول خارج الجدول');
     $('rDate').textContent = r.day+' '+r.date.split('-').reverse().join('/')+(r.duplicate?' — تم الاحتفاظ بوقت الدخول الأول':'')+' — الوقت من الخادم';
     show('vResult');
     try{ navigator.vibrate && navigator.vibrate(kind==='ok'?60:[60,80,60]); }catch(e){}
@@ -342,6 +388,20 @@
       if(r&&r.ok){ renderResult(r); $('backMe').hidden=false; } else err(r&&r.msg);
     }).catch(function(){ err('تعذّر الاتصال بالخادم، يُرجى التحقق من الإنترنت ثم إعادة المحاولة.'); });
   }
+  $('sqYes').addEventListener('click',function(){ $('sqForm').hidden=false; this.parentNode.hidden=true; });
+  $('sqNo').addEventListener('click',function(){ $('subQ').hidden=true; });
+  $('sqSave').addEventListener('click',function(){
+    var id=$('sqT').value, e=$('sqErr'); e.style.display='none';
+    if(!id){ e.textContent='يُرجى اختيار القسم ثم المعلمة الغائبة.'; e.style.display='block'; return; }
+    var b=this; b.disabled=true; b.textContent='جارٍ التسجيل…';
+    var arg=BOOT.me?{me:BOOT.me}:{token:(store()||{}).token};
+    call('declareSub',Object.assign({c:$('subQ').dataset.cls,absId:id},arg)).then(function(r){
+      b.disabled=false; b.textContent='تسجيل حصة الاحتياط';
+      if(r&&r.ok){ renderResult(r); $('backMe').hidden=false; $('subQ').hidden=true; return; }
+      e.textContent=(r&&r.msg)||'تعذّر التسجيل.'; e.style.display='block';
+    }).catch(function(){ b.disabled=false; b.textContent='تسجيل حصة الاحتياط'; e.textContent='تعذّر الاتصال بالخادم.'; e.style.display='block'; });
+  });
+
   // ---------- حصص الاحتياط: المعلمة تختار بنفسها ----------
   function idArg(){ return BOOT.me?{me:BOOT.me}:{token:(store()||{}).token}; }
   function sbRender(r){
