@@ -98,6 +98,7 @@
   .op .take.cancel{background:transparent;color:var(--brown-soft);border:1px solid var(--line);font-weight:500}
   .op.mine{background:var(--ok-bg);border-color:#C9DCCB}
   .tg{font-style:normal;font-size:11px;background:#FBE3D3;color:var(--orange-deep);border-radius:8px;padding:1px 7px;font-weight:700;margin-inline-start:4px}
+  select:disabled{opacity:.55}
   .tip{font-size:12px;color:var(--brown-soft);text-align:center;margin-top:16px;line-height:1.8;background:var(--ivory);padding:10px;border-radius:6px}
   [hidden]{display:none!important}
 </style>
@@ -118,8 +119,10 @@
     <section class="card fade" id="vLogin" hidden>
       <h1>تفعيل الدخول السريع</h1>
       <p class="lead">يتم ذلك مرة واحدة فقط على هذا الجوال، وبعدها يكفي مسح باركود الفصل.</p>
+      <label for="dept">المادة</label>
+      <select id="dept"><option value="">جارٍ تحميل المواد…</option></select>
       <label for="teacher">اسم المعلمة</label>
-      <select id="teacher"><option value="">جارٍ تحميل الأسماء…</option></select>
+      <select id="teacher" disabled><option value="">اختاري المادة أولاً</option></select>
       <label for="pin">الرمز السري</label>
       <input id="pin" class="pin" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="6" placeholder="••••">
       <button class="btn" id="loginBtn">تفعيل</button>
@@ -261,14 +264,18 @@
     if(loaded) return;
     call('teachers').then(function(r){
       loaded=true;
-      var sel=$('teacher'); sel.innerHTML='<option value="">— اختاري اسمك —</option>';
       var groups={};
       (r.teachers||[]).forEach(function(t){ (groups[t.dept]=groups[t.dept]||[]).push(t); });
-      Object.keys(groups).forEach(function(d){
-        var g=document.createElement('optgroup'); g.label=d;
-        groups[d].forEach(function(t){ var o=document.createElement('option'); o.value=t.id; o.textContent=t.name; g.appendChild(o); });
-        sel.appendChild(g);
+      var ds=$('dept'); ds.innerHTML='<option value="">— اختاري المادة —</option>';
+      Object.keys(groups).sort(function(a,b){return a.localeCompare(b,'ar');}).forEach(function(d){
+        var o=document.createElement('option'); o.value=d; o.textContent=d; ds.appendChild(o);
       });
+      ds.onchange=function(){
+        var sel=$('teacher'), list=groups[ds.value]||[];
+        sel.innerHTML='<option value="">'+(ds.value?'— اختاري اسمك —':'اختاري المادة أولاً')+'</option>';
+        list.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ar');}).forEach(function(t){ var o=document.createElement('option'); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
+        sel.disabled=!ds.value;
+      };
     }).catch(function(){ err('تعذّر تحميل قائمة المعلمات.'); });
   }
 
