@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>تسجيل دخول الحصة — مدرسة الشيماء</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="دخول الحصة">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -84,6 +87,13 @@
   .scan{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border-radius:8px;background:var(--orange);color:#fff;font-size:19px;font-weight:700;padding:20px 18px;margin:14px 0 6px;cursor:pointer;box-shadow:0 6px 16px rgba(180,80,20,.28)}
   .scan svg{width:30px;height:30px;flex:none}
   .scan input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .scan{border:0;font-family:inherit}
+  .cam{position:fixed;inset:0;background:#000;z-index:50;display:flex;flex-direction:column}
+  .cam video{flex:1;width:100%;object-fit:cover}
+  .cam .frame{position:absolute;left:50%;top:45%;width:64vw;height:64vw;max-width:320px;max-height:320px;transform:translate(-50%,-50%);border:3px solid rgba(255,255,255,.9);border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+  .cam .bar{position:absolute;left:0;right:0;bottom:0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));text-align:center;color:#fff}
+  .cam .bar p{font-size:15px;margin-bottom:12px}
+  .cam .bar button{background:var(--ivory);color:var(--brown);border:0;border-radius:24px;padding:12px 30px;font:inherit;font-weight:700;font-size:16px}
   .scanhint{font-size:12.5px;color:var(--brown-soft);text-align:center;margin:0 0 6px;line-height:1.7}
   .go.info{background:var(--ivory);color:var(--brown);box-shadow:none;cursor:default;border:1px solid var(--line)}
   .subt{font-style:normal;font-size:11px;background:#DFF0EE;color:#00808A;border-radius:8px;padding:1px 7px;font-weight:700}
@@ -170,8 +180,8 @@
       <div class="hello" id="meName"></div>
       <div class="today" id="meDate"></div>
       <span class="daytag" id="meTag" hidden></span>
-      <label class="scan" id="scanBtn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M8 9h3v3H8zM13 13h3v3h-3zM13 9h3M8 15h3"/></svg><span>امسحي باركود الفصل</span><input type="file" id="scanFile" accept="image/*" capture="environment"></label>
-      <p class="scanhint">تفتح الكاميرا ← صوّري ملصق باب الفصل ← «استخدام الصورة» ← يتم التسجيل</p>
+      <button class="scan" id="scanBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M8 9h3v3H8zM13 13h3v3h-3zM13 9h3M8 15h3"/></svg><span>امسحي باركود الفصل</span></button><input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none">
+      <p class="scanhint">تفتح الكاميرا ← وجّهيها إلى باركود باب الفصل ← يتم التسجيل تلقائياً</p>
       <div class="sec">حصتك الآن</div>
       <div id="meNow"></div>
       <div class="sec">حصصي اليوم</div>
@@ -179,7 +189,7 @@
       <div class="sec" id="otherSec">دخول حصة أخرى (احتياط)</div>
       <div class="other" id="otherBox"><select id="meOther"></select><button class="btn" id="meOtherBtn">تسجيل</button></div>
       <button class="sb" id="openSubsBtn">حصص الاحتياط المتاحة اليوم <b id="openSubsN">عرض</b></button>
-      <p class="tip" id="meTip">عند دخول أي حصة (ومنها حصص الاحتياط): افتحي كاميرا الجوال ووجّهيها إلى باركود باب الفصل، ثم اضغطي الرابط الظاهر، فيتم التسجيل فوراً باسمك.</p>
+      <p class="tip" id="meTip"><b>مهم:</b> أضيفي هذه الصفحة إلى الشاشة الرئيسية لجوالك (في الآيفون: زر المشاركة ← «إضافة إلى الشاشة الرئيسية»، وفي الأندرويد: القائمة ⋮ ← «إضافة إلى الشاشة الرئيسية»). وعند كل حصة: افتحي الأيقونة ← «امسحي باركود الفصل» ← وجّهي الكاميرا إلى باركود الباب، فيتم التسجيل باسمك مباشرة.</p>
     </section>
 
     <section class="card fade" id="vHome" hidden>
@@ -209,11 +219,14 @@
     </section>
   </main>
 
+  <div class="cam" id="cam" hidden><video id="camV" playsinline muted autoplay></video><div class="frame"></div>
+    <div class="bar"><p>وجّهي الكاميرا إلى باركود باب الفصل</p><button id="camClose" type="button">إلغاء</button></div></div>
+
   <footer><span>متعلم ريادي لتنمية مستدامة</span></footer>
 
 <script>
   var BOOT = (function(){ var q=new URLSearchParams(location.search);
-    return { ext:true, me:'', subs:q.get('subs')?1:0, card:q.get('me')||'', c:q.get('room')||'', k:q.get('code')||'', school:'مدرسة الشيماء الثانوية للبنات',
+    return { ext:true, me:q.get('u')||'', subs:q.get('subs')?1:0, card:q.get('me')||'', c:q.get('room')||'', k:q.get('code')||'', school:'مدرسة الشيماء الثانوية للبنات',
       apiUrl:'https://script.google.com/macros/s/AKfycbwxiJ_6Yzg-OX8poul9B17T27VWeVcUs-egVBgcYQsPOTvPURSV07IMHQ2wwWNz0vvcvQ/exec' }; })();
 </script>
 <script>
@@ -335,7 +348,8 @@
     call('login',{id:id,pin:pin}).then(function(r){
       b.disabled=false; b.textContent='تفعيل';
       if(!r||!r.ok){ e.textContent=(r&&r.msg)||'تعذّر التفعيل.'; e.style.display='block'; return; }
-      save({token:r.token,name:r.name,id:r.id}); $('pin').value='';
+      save({token:r.token,name:r.name,id:r.id,key:r.key||''}); $('pin').value='';
+      if(r.key){ BOOT.me=r.key; var c0=BOOT.c,k0=BOOT.k; BOOT.c=''; setUrl(); if(c0) return doMe(c0,k0); return BOOT.subs?loadSubs():loadMe(); }
       if(BOOT.c) doCheckin(); else if(BOOT.subs) loadSubs(); else loadMe();
     }).catch(function(){ b.disabled=false; b.textContent='تفعيل'; e.textContent='تعذّر الاتصال بالخادم.'; e.style.display='block'; });
   });
@@ -354,7 +368,7 @@
   function loadMe(silent){
     if(!silent){ $('loadingText').textContent='جارٍ التحميل…'; show('vLoading'); }
     call('me',BOOT.me?{me:BOOT.me}:{token:(store()||{}).token}).then(function(r){
-      if(r&&r.code==='NODEVICE'){ save(null); return startLogin(r.msg); }
+      if(r&&(r.code==='NODEVICE'||r.code==='NOKEY')){ save(null); BOOT.me=''; return startLogin(r.msg); }
       if(!r||!r.ok){ err(r&&r.msg); return; }
       $('meName').textContent='أهلاً أ. '+r.name.split(/\s+/)[0];
       $('meDate').textContent=r.day+' '+r.date.split('-').reverse().join('/')+' · '+r.time12;
@@ -490,6 +504,29 @@
     var m=String(text).match(/[?&]room=([^&#]+).*?[?&]code=([^&#]+)/);
     return m?{c:decodeURIComponent(m[1]),k:decodeURIComponent(m[2])}:null;
   }
+  var camStream=null, camTimer=null, camCv=document.createElement('canvas');
+  function camStop(){ clearTimeout(camTimer); if(camStream){ camStream.getTracks().forEach(function(t){t.stop();}); camStream=null; } $('cam').hidden=true; }
+  function camTick(){
+    var v=$('camV');
+    if(!camStream) return;
+    if(v.readyState>=2 && window.jsQR){
+      var w=v.videoWidth, h=v.videoHeight, sc=Math.min(1,720/Math.max(w,h)); camCv.width=Math.round(w*sc); camCv.height=Math.round(h*sc);
+      var cx=camCv.getContext('2d'); cx.drawImage(v,0,0,camCv.width,camCv.height);
+      var q=window.jsQR(cx.getImageData(0,0,camCv.width,camCv.height).data,camCv.width,camCv.height,{inversionAttempts:'dontInvert'});
+      if(q&&q.data){ var d=parseDoor(q.data);
+        if(d){ camStop(); try{navigator.vibrate&&navigator.vibrate(40);}catch(e){} return doMe(d.c,d.k); } }
+    }
+    camTimer=setTimeout(camTick,160);
+  }
+  function camStart(){
+    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)) return $('scanFile').click();
+    loadLib().catch(function(){});
+    navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(function(st){
+      camStream=st; var v=$('camV'); v.srcObject=st; $('cam').hidden=false; v.play().catch(function(){}); camTick();
+    }).catch(function(){ $('scanFile').click(); });   // عند تعذّر الكاميرا المباشرة: التقاط صورة
+  }
+  $('scanBtn').addEventListener('click',camStart);
+  $('camClose').addEventListener('click',camStop);
   $('scanFile').addEventListener('change',function(){
     var f=this.files&&this.files[0]; this.value='';
     if(!f) return;
@@ -505,20 +542,20 @@
   $('meOtherBtn').addEventListener('click',function(){ var c=$('meOther').value; if(c) doMe(c); });
   $('backMe').addEventListener('click',function(){ loadMe(); });
 
+  function setUrl(){ try{ history.replaceState(null,'',location.pathname+'?u='+encodeURIComponent(BOOT.me)); }catch(e){} }
   function boot(){
     if(BOOT.school) $('schoolName').textContent=BOOT.school;
-    if(BOOT.card){   // مسح البطاقة الشخصية: تفعيل الجوال بدون اسم ولا رمز
-      var card=BOOT.card; BOOT.card='';
-      try{ history.replaceState(null,'',location.pathname); }catch(e){}
-      $('loadingText').textContent='جارٍ تفعيل الجوال…'; show('vLoading');
-      return call('loginKey',{me:card}).then(function(r){
-        if(!r||!r.ok) return err((r&&r.msg)||'تعذّر التفعيل.');
-        save({token:r.token,name:r.name,id:r.id}); BOOT.subs?loadSubs():loadMe();
-      }).catch(function(){ err('تعذّر الاتصال بالخادم، يُرجى التحقق من الإنترنت ثم إعادة المحاولة.'); });
+    var s=store()||{};
+    if(BOOT.card){ BOOT.me=BOOT.card; BOOT.card=''; }      // مسح البطاقة الشخصية
+    if(BOOT.me){ if(s.key!==BOOT.me){ s.key=BOOT.me; save(s); } }   // رابط الأيقونة يحمل هوية المعلمة
+    else if(s.key) BOOT.me=s.key;
+    if(BOOT.me){
+      var c=BOOT.c, k=BOOT.k; BOOT.c=''; setUrl();
+      if(c) return doMe(c,k);
+      return BOOT.subs?loadSubs():loadMe();
     }
-    var s=store();
-    if(!s||!s.token) return startLogin();
-    if(BOOT.c){ var c=BOOT.c; return doCheckin(); }
+    if(!s.token) return startLogin();
+    if(BOOT.c) return doCheckin();
     BOOT.subs?loadSubs():loadMe();
   }
   boot();
