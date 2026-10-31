@@ -113,6 +113,8 @@
   .wel b{display:block;font-size:20px}
   .subq{margin-top:18px;border:1px solid var(--line);border-radius:6px;padding:14px;background:var(--ivory)}
   .subq .q{text-align:center;font-weight:700;font-size:16px}
+  .subq .q{line-height:1.7}
+  .subq #sqType .btn{background:var(--orange)}
   .subq .yn{display:flex;gap:8px;margin-top:10px} .subq .yn .btn{margin:0;padding:12px;font-size:15px}
   .btn.ghost{background:transparent;color:var(--brown);border:1px solid var(--line)}
   .subq label{margin-top:12px}
@@ -161,12 +163,13 @@
       <span class="chip" id="rChip"></span>
       <p class="wel" id="rWel"></p>
       <div class="subq" id="subQ" hidden>
-        <div class="q">هل هذه حصة احتياط؟</div>
-        <div class="yn"><button class="btn" id="sqYes">نعم، حصة احتياط</button><button class="btn ghost" id="sqNo">لا</button></div>
+        <div class="q" id="sqQ">هذه الحصة ليست ضمن جدولك.<br>هل هي حصة احتياط؟</div>
+        <div class="yn" id="sqYN"><button class="btn" id="sqYes">نعم</button><button class="btn ghost" id="sqNo">لا</button></div>
+        <div class="yn" id="sqType" hidden><button class="btn" id="sqSwap">تبديل</button><button class="btn" id="sqCover">احتياط</button></div>
         <div id="sqForm" hidden>
-          <label for="sqDept">قسم المعلمة الغائبة</label>
+          <label for="sqDept">القسم</label>
           <select id="sqDept"><option value="">— اختاري القسم —</option></select>
-          <label for="sqT">المعلمة الغائبة (بديلة عنها)</label>
+          <label for="sqT" id="sqTLbl">المعلمة الغائبة (بديلة عنها)</label>
           <select id="sqT" disabled><option value="">اختاري القسم أولاً</option></select>
           <button class="btn" id="sqSave">تسجيل حصة الاحتياط</button>
         </div>
@@ -270,13 +273,13 @@
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
   function welcome(r){
     var first=String(r.name||'').split(/\s+/)[0];
-    var ph= r.sub?pick(PH_SUB) : r.status==='متأخرة'?pick(PH_LATE) : r.status==='في الوقت'?pick(PH_ON) : 'تم تسجيل وقت دخولكِ، بارك الله في جهدكِ.';
+    var ph= r.sub?(r.subType==='تبديل'?'بارك الله في تعاونكِ مع زميلتكِ، حصة موفقة.':pick(PH_SUB)) : r.status==='متأخرة'?pick(PH_LATE) : r.status==='في الوقت'?pick(PH_ON) : 'تم تسجيل وقت دخولكِ، بارك الله في جهدكِ.';
     $('rWel').innerHTML='<b>أهلاً بكِ أ. '+first+'</b>'+ph;
   }
-  var TCH=null;
+  var TCH=null, SQTYPE='احتياط';
   function setupSubQ(r){
     var box=$('subQ'); box.hidden=!(r.status==='خارج الجدول'&&r.curP&&!r.duplicate);
-    $('sqForm').hidden=true; $('sqErr').style.display='none'; document.querySelector('#subQ .yn').hidden=false;
+    $('sqForm').hidden=true; $('sqErr').style.display='none'; $('sqYN').hidden=false; $('sqType').hidden=true; $('sqQ').innerHTML='هذه الحصة ليست ضمن جدولك.<br>هل هي حصة احتياط؟'; SQTYPE='احتياط';
     if(box.hidden) return;
     box.dataset.cls=r.cls;
     var fill=function(){
@@ -292,7 +295,7 @@
     setTimeout(function(){ welcome(r); setupSubQ(r); },0);
     var kind = r.status==='متأخرة'?'late':(r.status==='في الوقت'?'ok':'out');
     $('seal').className='seal '+kind; $('seal').innerHTML=ICON[kind];
-    $('rTitle').textContent = r.duplicate?'سبق تسجيل دخولك':(r.sub?'تم تسجيل حصة الاحتياط':'تم تسجيل دخولك');
+    $('rTitle').textContent = r.duplicate?'سبق تسجيل دخولك':(r.sub?(r.subType==='تبديل'?'تم تسجيل حصة التبديل':'تم تسجيل حصة الاحتياط'):'تم تسجيل دخولك');
     $('rName').textContent = 'أ. '+r.name;
     $('rCls').textContent = r.cls; $('rClsAr').textContent = clsAr(r.cls);
     $('rTime').textContent = r.time12;
@@ -300,7 +303,7 @@
     else { $('rPerLbl').textContent='الحصة'; $('rPer').textContent='غير مجدولة الآن'; }
     var chip=$('rChip'); chip.className='chip '+kind;
     chip.textContent = kind==='late' ? ('متأخرة '+(r.late==2?'دقيقتين':r.late+' '+(r.late>=3&&r.late<=10?'دقائق':'دقيقة'))) :
-                       kind==='ok' ? (r.sub?'احتياط · في الوقت':'في الوقت') : (r.status==='غير محتسب' ? 'تم التسجيل · يوم غير محتسب' : 'دخول خارج الجدول');
+                       kind==='ok' ? (r.sub?(r.subType==='تبديل'?'تبديل':'احتياط')+' · في الوقت':'في الوقت') : (r.status==='غير محتسب' ? 'تم التسجيل · يوم غير محتسب' : 'دخول خارج الجدول');
     $('rDate').textContent = r.day+' '+r.date.split('-').reverse().join('/')+(r.duplicate?' — تم الاحتفاظ بوقت الدخول الأول':'')+' — الوقت من الخادم';
     show('vResult');
     try{ navigator.vibrate && navigator.vibrate(kind==='ok'?60:[60,80,60]); }catch(e){}
@@ -402,15 +405,23 @@
       if(r&&r.ok){ renderResult(r); $('backMe').hidden=false; } else err(r&&r.msg);
     }).catch(function(){ err('تعذّر الاتصال بالخادم، يُرجى التحقق من الإنترنت ثم إعادة المحاولة.'); });
   }
-  $('sqYes').addEventListener('click',function(){ $('sqForm').hidden=false; this.parentNode.hidden=true; });
-  $('sqNo').addEventListener('click',function(){ $('subQ').hidden=true; });
+  function sqForm(type){
+    SQTYPE=type; $('sqYN').hidden=true; $('sqType').hidden=true; $('sqForm').hidden=false;
+    $('sqQ').textContent= type==='تبديل'?'حصة تبديل':'حصة احتياط';
+    $('sqTLbl').textContent= type==='تبديل'?'المعلمة التي تم التبديل معها':'المعلمة الغائبة (بديلة عنها)';
+    $('sqSave').textContent= type==='تبديل'?'تسجيل حصة التبديل':'تسجيل حصة الاحتياط';
+  }
+  $('sqYes').addEventListener('click',function(){ sqForm('احتياط'); });
+  $('sqNo').addEventListener('click',function(){ $('sqYN').hidden=true; $('sqType').hidden=false; $('sqQ').innerHTML='يُرجى تحديد نوع الحصة:<br>تبديل أم احتياط؟'; });
+  $('sqSwap').addEventListener('click',function(){ sqForm('تبديل'); });
+  $('sqCover').addEventListener('click',function(){ sqForm('احتياط'); });
   $('sqSave').addEventListener('click',function(){
     var id=$('sqT').value, e=$('sqErr'); e.style.display='none';
-    if(!id){ e.textContent='يُرجى اختيار القسم ثم المعلمة الغائبة.'; e.style.display='block'; return; }
+    if(!id){ e.textContent='يُرجى اختيار القسم ثم المعلمة.'; e.style.display='block'; return; }
     var b=this; b.disabled=true; b.textContent='جارٍ التسجيل…';
     var arg=BOOT.me?{me:BOOT.me}:{token:(store()||{}).token};
-    call('declareSub',Object.assign({c:$('subQ').dataset.cls,absId:id},arg)).then(function(r){
-      b.disabled=false; b.textContent='تسجيل حصة الاحتياط';
+    call('declareSub',Object.assign({c:$('subQ').dataset.cls,absId:id,type:SQTYPE},arg)).then(function(r){
+      b.disabled=false; b.textContent=SQTYPE==='تبديل'?'تسجيل حصة التبديل':'تسجيل حصة الاحتياط';
       if(r&&r.ok){ renderResult(r); $('backMe').hidden=false; $('subQ').hidden=true; return; }
       e.textContent=(r&&r.msg)||'تعذّر التسجيل.'; e.style.display='block';
     }).catch(function(){ b.disabled=false; b.textContent='تسجيل حصة الاحتياط'; e.textContent='تعذّر الاتصال بالخادم.'; e.style.display='block'; });
