@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#E8692B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:wght@500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Marhey:wght@300..700&display=swap" rel="stylesheet">
 <style>
   :root{
     --orange:#E8692B; --orange-deep:#C9541C; --brown:#3B2416; --brown-soft:#6B4A36;
@@ -20,6 +20,11 @@
     --ok:#2F5D46; --ok-bg:#E6EEE5; --late:#B4441A; --late-bg:#F8DDCB; --out-bg:#EFE5D6;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  *{font-family:'Marhey',system-ui,sans-serif!important}
+  .hi{display:block;font-size:44px;font-weight:700;color:var(--orange);line-height:1.4;animation:hiIn .5s ease-out}
+  .hi i{font-style:normal;display:inline-block;animation:beat 1s ease-in-out infinite}
+  @keyframes hiIn{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+  @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
   html,body{background:var(--ivory);color:var(--brown);font-family:'Tajawal',system-ui,sans-serif;min-height:100%}
   body{display:flex;flex-direction:column;align-items:center;min-height:100vh}
   .band{width:100%;background:var(--orange);position:relative;padding:28px 16px 46px;text-align:center;color:var(--ivory)}
@@ -292,6 +297,7 @@
     if(TCH) fill(); else call('teachers').then(function(x){ TCH=(x&&x.teachers)||[]; fill(); });
   }
   function renderResult(r){
+    var w=1400-(Date.now()-HI_T); if(HI_T&&w>0){ return setTimeout(function(){ renderResult(r); },w); } HI_T=0;
     setTimeout(function(){ welcome(r); setupSubQ(r); },0);
     var kind = r.status==='متأخرة'?'late':(r.status==='في الوقت'?'ok':'out');
     $('seal').className='seal '+kind; $('seal').innerHTML=ICON[kind];
@@ -309,9 +315,11 @@
     try{ navigator.vibrate && navigator.vibrate(kind==='ok'?60:[60,80,60]); }catch(e){}
   }
 
+  var HI_T=0;
+  function hi(){ HI_T=Date.now(); $('loadingText').innerHTML='<span class="hi">أرررررحبي <i>🤍</i></span>جارٍ تسجيل الدخول…'; show('vLoading'); }
   function doCheckin(){
     var s=store();
-    $('loadingText').textContent='جارٍ تسجيل الدخول…'; show('vLoading');
+    hi();
     call('checkin',{token:s.token,c:BOOT.c,k:BOOT.k}).then(function(r){
       if(r&&r.ok){ renderResult(r); $('backMe').hidden=false; return; }
       if(r&&r.code==='NODEVICE'){ save(null); return startLogin(r.msg); }
@@ -400,7 +408,7 @@
     }).catch(function(){ if(!silent) err('تعذّر الاتصال بالخادم، يُرجى التحقق من الإنترنت ثم إعادة المحاولة.'); });
   }
   function doMe(c,k){
-    $('loadingText').textContent='جارٍ تسجيل الدخول…'; show('vLoading');
+    hi();
     (BOOT.me?call('checkinMe',{me:BOOT.me,c:c,k:k||''}):call('checkin',{token:(store()||{}).token,c:c,k:k||''})).then(function(r){
       if(r&&r.ok){ renderResult(r); $('backMe').hidden=false; } else err(r&&r.msg);
     }).catch(function(){ err('تعذّر الاتصال بالخادم، يُرجى التحقق من الإنترنت ثم إعادة المحاولة.'); });
